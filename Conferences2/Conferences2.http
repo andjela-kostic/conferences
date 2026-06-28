@@ -1,0 +1,117 @@
+### ==========================================
+### 1. CONFERENCES (CRUD)
+### ==========================================
+
+### Create Conference (POST)
+POST http://localhost:5018/api/conferences
+Content-Type: application/json
+
+{
+  "name": "Advanced .NET 9",
+  "description": "Conference with specific topics",
+  "date": "2026-11-20T10:00:00Z",
+  "topicIds": [1, 2]
+}
+###
+
+### Get All Conferences (GET)
+GET http://localhost:5018/api/conferences
+
+###
+
+### Update Conference (PUT) - REPLACE ID AT THE END IF NOT 1
+PUT http://localhost:5018/api/conferences/1
+Content-Type: application/json
+
+{
+  "name": "Sinergija 2026 - Updated",
+  "description": "New description for the conference",
+  "date": "2026-10-16T09:00:00Z"
+}
+
+###
+
+### Delete Conference (DELETE)
+DELETE http://localhost:5018/api/conferences/1
+
+
+### ==========================================
+### 2. TOPICS
+### ==========================================
+
+### Create Topic for Conference (POST)
+### (Assuming ConferenceId = 1, check in database)
+POST http://localhost:5018/api/topics
+Content-Type: application/json
+
+{
+  "name": "Introduction to .NET 9 and C# 13",
+  "description": "Overview of new framework features",
+  "conferenceId": 1
+}
+
+###
+
+### Get All Topics (GET)
+GET http://localhost:5018/api/topics
+
+###
+
+### Get Topics for Specific Conference (GET)
+GET http://localhost:5018/api/topics/conference/1
+
+
+### ==========================================
+### 3. USERS
+### ==========================================
+
+### Register New User (POST)
+POST http://localhost:5018/api/users
+Content-Type: application/json
+
+{
+  "firstName": "Peter",
+  "lastName": "Peterson",
+  "email": "peter.peterson@email.com"
+}
+
+###
+
+### Get All Users (GET)
+GET http://localhost:5018/api/users
+
+
+### ==========================================
+### 4. REGISTRATION / UNREGISTRATION (Many-to-Many)
+### ==========================================
+
+### Register User to Topic (POST)
+### (Linking UserId = 1 and TopicId = 1)
+POST http://localhost:5018/api/users/register-topic
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "topicId": 1
+}
+
+###
+
+### Get All Topics User is Registered For (GET)
+GET http://localhost:5018/api/users/1/topics
+
+###
+
+### Get All Users Registered for Specific Topic (GET)
+GET http://localhost:5018/api/users/topic/1
+
+###
+
+### Unregister User from Topic (POST)
+POST http://localhost:5018/api/users/unregister-topic
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "topicId": 1
+}

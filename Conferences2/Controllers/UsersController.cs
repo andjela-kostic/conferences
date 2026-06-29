@@ -74,18 +74,34 @@ public class UsersController: ControllerBase
     }
 
     [HttpGet("{userId}/topics")]
-    public async Task<IActionResult> GetUserTopics(int userId)
+    public async Task<ActionResult<IEnumerable<Topic>>> GetUserTopics(int userId)
     {
-        var topics = await _context.UserTopics.Where(ut=>ut.UserId == userId).Select(t=>t.Topic).ToListAsync();
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+        if(!userExists) return NotFound($"User with ID {userId} not found.");
         
-        return Ok(topics);
+        var topics = await _context.UserTopics
+            .Where(ut => ut.UserId == userId)
+            .Select(t => t.Topic)
+            .ToListAsync();
+        
+        if(!topics.Any()) return NotFound($"No topics found for user {userId}.");
+        
+        return topics;
     }
 
     [HttpGet("topic/{topicId}")]
-    public async Task<IActionResult> GetUsersByTopics(int topicId)
+    public async Task<ActionResult<IEnumerable<User>>> GetUsersByTopics(int topicId)
     {
-        var users = await _context.UserTopics.Where(ut=>ut.TopicId == topicId).Select(t=>t.User).ToListAsync();
+        var topicExists = await _context.Topics.AnyAsync(t => t.Id == topicId);
+        if(!topicExists) return NotFound($"Topic with ID {topicId} not found.");
         
-        return Ok(users);
+        var users = await _context.UserTopics
+            .Where(ut => ut.TopicId == topicId)
+            .Select(t => t.User)
+            .ToListAsync();
+        
+        if(!users.Any()) return NotFound($"No users registered for topic {topicId}.");
+        
+        return users;
     }
 }

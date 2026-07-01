@@ -1,10 +1,10 @@
-using Conferences2.Data;
-using Conferences2.Models;
-using Conferences2.Models.DTOs;
+using Conferences.Data;
+using Conferences.Models;
+using Conferences.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Conferences2.Controllers;
+namespace Conferences.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

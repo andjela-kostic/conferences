@@ -1,4 +1,4 @@
-using Conferences2.Data;
+using Conferences.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 

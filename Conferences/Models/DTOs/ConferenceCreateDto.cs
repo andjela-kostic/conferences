@@ -1,4 +1,4 @@
-namespace Conferences2.Models.DTOs;
+namespace Conferences.Models.DTOs;
 
 public class ConferenceCreateDto
 {

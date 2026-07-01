@@ -35,7 +35,7 @@ cd conferences
 
 ### 2. Configure Database Connection
 
-Create `appsettings.Development.json` in the `Conferences2` folder with your database credentials:
+Create `appsettings.Development.json` in the `Conferences` folder with your database credentials:
 
 ```json
 {
@@ -55,7 +55,7 @@ Create `appsettings.Development.json` in the `Conferences2` folder with your dat
 
 ### 3. Apply Database Migrations
 ```bash
-cd Conferences2
+cd Conferences
 dotnet ef database update
 ```
 
@@ -94,4 +94,4 @@ The API will be available at:
 
 ## 🧪 Testing
 
-Use the included `Conferences2.http` file with REST Client extension or similar tools to test all endpoints.
+Use the included `Conferences.http` file with REST Client extension or similar tools to test all endpoints.

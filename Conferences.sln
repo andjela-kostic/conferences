@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conferences2", "Conferences2\Conferences2.csproj", "{633F0D05-EA38-44FE-9F28-539596AFBAD7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conferences", "Conferences\Conferences.csproj", "{633F0D05-EA38-44FE-9F28-539596AFBAD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

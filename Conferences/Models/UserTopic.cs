@@ -1,4 +1,4 @@
-namespace Conferences2.Models;
+namespace Conferences.Models;
 
 public class UserTopic
 {

@@ -1,7 +1,7 @@
-using Conferences2.Models;
+using Conferences.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Conferences2.Data;
+namespace Conferences.Data;
 
 public class AppDbContext:DbContext
 {

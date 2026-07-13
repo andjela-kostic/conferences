@@ -1,6 +1,6 @@
 # Conference Management API
 
-A REST API for managing conferences and their topics, built with ASP.NET Core 9 and PostgreSQL. Allows users to register for specific conference topics with many-to-many relationships.
+A REST API for managing conferences and their topics, built with ASP.NET Core 9 and PostgreSQL. It uses a modular architecture with `Domain`, `Application`, `Infrastructure`, and `API` projects.
 
 ## 🚀 Features
 
@@ -9,7 +9,7 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 9 
 - ✅ Topic registration and unregistration for conference attendees
 - ✅ PostgreSQL database with Entity Framework Core
 - ✅ Swagger/OpenAPI documentation
-- ✅ Clean architecture with DTOs and controllers
+- ✅ Modular architecture with DTOs, services, repositories, and controllers
 
 ## 🛠️ Tech Stack
 
@@ -35,7 +35,7 @@ cd conferences
 
 ### 2. Configure Database Connection
 
-Create `appsettings.Development.json` in the `Conferences` folder with your database credentials:
+Create `appsettings.Development.json` in the `API` folder with your database credentials:
 
 ```json
 {
@@ -55,13 +55,12 @@ Create `appsettings.Development.json` in the `Conferences` folder with your data
 
 ### 3. Apply Database Migrations
 ```bash
-cd Conferences
-dotnet ef database update
+dotnet ef database update --project Infrastructure --startup-project API
 ```
 
 ### 4. Run the Application
 ```bash
-dotnet run
+dotnet run --project API/API.csproj
 ```
 
 The API will be available at:
@@ -94,4 +93,4 @@ The API will be available at:
 
 ## 🧪 Testing
 
-Use the included `Conferences.http` file with REST Client extension or similar tools to test all endpoints.
+Use the included `API/Conferences.http` file with REST Client extension or similar tools to test all endpoints.

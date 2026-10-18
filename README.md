@@ -1,6 +1,6 @@
 # Conference Management API
 
-A REST API for managing conferences and their topics, built with ASP.NET Core 9 and PostgreSQL. It uses a modular architecture with `Domain`, `Application`, `Infrastructure`, and `API` projects.
+A REST API for managing conferences and their topics, built with ASP.NET Core 10 and PostgreSQL. It uses a modular architecture with `Domain`, `Application`, `Infrastructure`, and `API` projects.
 
 ## 🚀 Features
 
@@ -13,15 +13,18 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 9 
 
 ## 🛠️ Tech Stack
 
-- **.NET 9.0**
+- **.NET 10 (LTS)** — SDK version pinned in `global.json`
 - **ASP.NET Core Web API**
-- **Entity Framework Core 9.0.15**
-- **PostgreSQL** (via Npgsql 9.0.4)
+- **Entity Framework Core 10**
+- **PostgreSQL** (via Npgsql EF Core provider)
 - **Swagger/OpenAPI**
+
+Package versions are managed centrally in `Directory.Packages.props`; shared build settings
+(target framework, nullable, warnings as errors, code style) live in `Directory.Build.props`.
 
 ## 📋 Prerequisites
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (see `global.json` for the exact version)
 - [PostgreSQL](https://www.postgresql.org/download/)
 - IDE: Visual Studio, Rider, or VS Code
 
@@ -35,26 +38,29 @@ cd conferences
 
 ### 2. Configure Database Connection
 
-Create `appsettings.Development.json` in the `API` folder with your database credentials:
+The non-secret part of the connection string (host, port, database, user) is committed in
+`API/appsettings.Development.json`. The password is **never** stored in the repository.
 
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Database=ConferencesDb;Username=postgres;Password=YOUR_PASSWORD"
-  }
-}
+Store the full connection string locally with [user secrets](https://learn.microsoft.com/aspnet/core/security/app-secrets):
+
+```bash
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=ConferencesDb;Username=postgres;Password=YOUR_PASSWORD" --project API
 ```
 
-> ⚠️ **Note:** `appsettings.Development.json` is gitignored to keep credentials safe.
+User secrets are stored outside the project folder and override `appsettings*.json` in the Development environment.
+
+In other environments, provide the connection string through an environment variable:
+
+```bash
+export ConnectionStrings__DefaultConnection="Host=...;Port=5432;Database=ConferencesDb;Username=...;Password=..."
+```
 
 ### 3. Apply Database Migrations
+
+`dotnet-ef` is a local tool pinned in `dotnet-tools.json`:
+
 ```bash
+dotnet tool restore
 dotnet ef database update --project Infrastructure --startup-project API
 ```
 

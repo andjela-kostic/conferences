@@ -99,4 +99,14 @@ The API will be available at:
 
 ## 🧪 Testing
 
+### Automated tests
+
+Unit tests for the application services live in `tests/Application.UnitTests` (xUnit v3, in-memory fake repositories, no database needed):
+
+```bash
+dotnet test --solution Conferences.sln
+```
+
+### Manual requests
+
 Use the included `API/Conferences.http` file with REST Client extension or similar tools to test all endpoints.

@@ -1,0 +1,20 @@
+<Project>
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+        <!-- Required for IDE0005 (unnecessary usings) to run during build. -->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <!-- CS1591: missing XML comments. Re-enable once API docs are written (phase 6). -->
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+    </PropertyGroup>
+
+</Project>
+

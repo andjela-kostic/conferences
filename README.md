@@ -13,7 +13,7 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 10
 - ✅ Swagger/OpenAPI documentation
 - ✅ Modular architecture with DTOs, services, repositories, and controllers
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack 
 
 - **.NET 10 (LTS)** — SDK version pinned in `global.json`
 - **ASP.NET Core Web API**

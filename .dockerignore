@@ -1,0 +1,17 @@
+# Keep the build context small and free of secrets.
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/*.user
+**/*.DotSettings.user
+.git/
+.github/
+tests/
+TestResults/
+.env
+**/appsettings.Development.json
+docker-compose*.yml
+**/Dockerfile
+*.md
+

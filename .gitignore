@@ -31,6 +31,10 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# Test results (TRX, coverage)
+[Tt]est[Rr]esult*/
+*.trx
+
 # Visual Studio cache/options directory
 .vs/
 

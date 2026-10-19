@@ -58,5 +58,3 @@ jobs:
           path: TestResults/*.trx
           if-no-files-found: warn
 
-
-

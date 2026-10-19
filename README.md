@@ -8,10 +8,10 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 10
 
 - ✅ Full CRUD operations for conferences, topics, and users
 - ✅ Many-to-many relationship between users and topics
-- ✅ Topic registration and unregistration for conference attendees
+- ✅ Topic registration and unregistration for conference attendees.  
 - ✅ PostgreSQL database with Entity Framework Core
 - ✅ Swagger/OpenAPI documentation
-- ✅ Modular architecture with DTOs, services, repositories, and controllers
+- ✅ Modular architecture with DTOs, services, repo sitories, and controllers
 
 ## 🛠️ Tech Stack
 

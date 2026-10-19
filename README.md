@@ -1,5 +1,7 @@
 # Conference Management API
 
+[![CI](https://github.com/andjela-kostic/conferences/actions/workflows/ci.yml/badge.svg)](https://github.com/andjela-kostic/conferences/actions/workflows/ci.yml)
+
 A REST API for managing conferences and their topics, built with ASP.NET Core 10 and PostgreSQL. It uses a modular architecture with `Domain`, `Application`, `Infrastructure`, and `API` projects.
 
 ## 🚀 Features

@@ -25,15 +25,14 @@ jobs:
   build-and-push:
     if: >
       github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push'
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
-      packages: write   # push to ghcr.io with the built-in GITHUB_TOKEN, no extra secret
+      packages: write
 
     steps:
-      # Build exactly the commit CI tested, not whatever main points to now.
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
@@ -61,10 +60,10 @@ jobs:
         with:
           context: .
           file: API/Dockerfile
-          platforms: linux/amd64   # Azure Container Apps runs amd64
-          push: true
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
 

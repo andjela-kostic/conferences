@@ -26,57 +26,29 @@ public class TopicsController : ControllerBase
     [HttpGet("conference/{conferenceId}")]
     public async Task<ActionResult<IEnumerable<Topic>>> GetTopicsByConference(int conferenceId)
     {
-        try
-        {
-            var topics = await _topicService.GetByConferenceAsync(conferenceId);
-            return Ok(topics);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var topics = await _topicService.GetByConferenceAsync(conferenceId);
+        return Ok(topics);
     }
 
     [HttpPost]
     public async Task<ActionResult<Topic>> CreateTopic(TopicCreateDto dto)
     {
-        try
-        {
-            var topic = await _topicService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetTopics), new { id = topic.Id }, topic);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var topic = await _topicService.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetTopics), new { id = topic.Id }, topic);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateTopic(int id, TopicCreateDto dto)
     {
-        try
-        {
-            await _topicService.UpdateAsync(id, dto);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _topicService.UpdateAsync(id, dto);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTopic(int id)
     {
-        try
-        {
-            await _topicService.DeleteAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _topicService.DeleteAsync(id);
+        return NoContent();
     }
 }
 

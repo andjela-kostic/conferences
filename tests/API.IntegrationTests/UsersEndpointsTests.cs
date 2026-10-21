@@ -43,7 +43,7 @@ public sealed class UsersEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task RegisterTopic_Twice_Returns400()
+    public async Task RegisterTopic_Twice_Returns409ProblemDetails()
     {
         var conference = await _client.CreateConferenceAsync(Ct);
         var topic = await _client.CreateTopicAsync(conference.Id, Ct);
@@ -53,16 +53,16 @@ public sealed class UsersEndpointsTests(ApiFactory factory)
 
         var second = await _client.PostAsJsonAsync("/api/users/register-topic", registration, Ct);
 
-        Assert.Equal(HttpStatusCode.BadRequest, second.StatusCode);
+        await ProblemAssert.HasStatusAsync(second, HttpStatusCode.Conflict, Ct);
     }
 
     [Fact]
-    public async Task RegisterTopic_MissingUserOrTopic_Returns400()
+    public async Task RegisterTopic_MissingUserOrTopic_Returns404ProblemDetails()
     {
         var response = await _client.PostAsJsonAsync(
             "/api/users/register-topic", new { UserId = 999999, TopicId = 999999 }, Ct);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await ProblemAssert.HasStatusAsync(response, HttpStatusCode.NotFound, Ct);
     }
 
     [Fact]
@@ -90,4 +90,5 @@ public sealed class UsersEndpointsTests(ApiFactory factory)
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
+
 

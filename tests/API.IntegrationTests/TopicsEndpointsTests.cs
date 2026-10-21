@@ -22,7 +22,7 @@ public sealed class TopicsEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Post_MissingConference_Returns400()
+    public async Task Post_MissingConference_Returns404ProblemDetails()
     {
         var response = await _client.PostAsJsonAsync("/api/topics", new
         {
@@ -31,7 +31,7 @@ public sealed class TopicsEndpointsTests(ApiFactory factory)
             ConferenceId = 999999,
         }, Ct);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        await ProblemAssert.HasStatusAsync(response, HttpStatusCode.NotFound, Ct);
     }
 
     [Fact]
@@ -83,4 +83,5 @@ public sealed class TopicsEndpointsTests(ApiFactory factory)
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
+
 

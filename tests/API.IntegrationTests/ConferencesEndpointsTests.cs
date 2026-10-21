@@ -65,11 +65,13 @@ public sealed class ConferencesEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
-    public async Task Delete_MissingConference_Returns404()
+    public async Task Delete_MissingConference_Returns404ProblemDetails()
     {
         var response = await _client.DeleteAsync("/api/conferences/999999", Ct);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var problem = await ProblemAssert.HasStatusAsync(response, HttpStatusCode.NotFound, Ct);
+        Assert.Equal("Conference with ID 999999 not found.", problem.Detail);
     }
 }
+
 

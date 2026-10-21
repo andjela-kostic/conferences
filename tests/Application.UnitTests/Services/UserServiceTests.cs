@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.Exceptions;
 using Application.Services;
 using Application.UnitTests.Fakes;
 
@@ -61,7 +62,7 @@ public sealed class UserServiceTests
     {
         var topic = _topics.Seed(conferenceId: 1);
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(
+        await Assert.ThrowsAsync<NotFoundException>(
             () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = 42, TopicId = topic.Id }));
 
         Assert.Empty(_registrations.Items);
@@ -72,7 +73,7 @@ public sealed class UserServiceTests
     {
         var user = _users.Seed();
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(
+        await Assert.ThrowsAsync<NotFoundException>(
             () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = 42 }));
 
         Assert.Empty(_registrations.Items);
@@ -85,7 +86,7 @@ public sealed class UserServiceTests
         var topic = _topics.Seed(conferenceId: 1);
         _registrations.Seed(user.Id, topic.Id);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<ConflictException>(
             () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = topic.Id }));
 
         Assert.Single(_registrations.Items);
@@ -108,7 +109,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task UnregisterFromTopicAsync_MissingRegistration_Throws()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(
+        await Assert.ThrowsAsync<NotFoundException>(
             () => _sut.UnregisterFromTopicAsync(new UserTopicDto { UserId = 1, TopicId = 1 }));
 
         Assert.Equal(0, _registrations.SaveChangesCalls);
@@ -140,7 +141,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task GetUserTopicsAsync_MissingUser_Throws()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetUserTopicsAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetUserTopicsAsync(42));
     }
 
     [Fact]
@@ -159,7 +160,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task GetUsersByTopicAsync_MissingTopic_Throws()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetUsersByTopicAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetUsersByTopicAsync(42));
     }
 }
 

@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.Exceptions;
 using Application.Services;
 using Application.UnitTests.Fakes;
 
@@ -90,7 +91,7 @@ public sealed class ConferenceServiceTests
     [Fact]
     public async Task UpdateAsync_MissingConference_ThrowsAndDoesNotSave()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateAsync(42, Dto()));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(42, Dto()));
 
         Assert.Equal(0, _conferences.SaveChangesCalls);
     }
@@ -109,7 +110,7 @@ public sealed class ConferenceServiceTests
     [Fact]
     public async Task DeleteAsync_MissingConference_ThrowsAndDoesNotSave()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.DeleteAsync(42));
 
         Assert.Equal(0, _conferences.SaveChangesCalls);
     }

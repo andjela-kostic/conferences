@@ -33,29 +33,15 @@ public class ConferencesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateConference(int id, ConferenceCreateDto dto)
     {
-        try
-        {
-            await _conferenceService.UpdateAsync(id, dto);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _conferenceService.UpdateAsync(id, dto);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteConference(int id)
     {
-        try
-        {
-            await _conferenceService.DeleteAsync(id);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _conferenceService.DeleteAsync(id);
+        return NoContent();
     }
 }
 

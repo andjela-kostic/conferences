@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.Exceptions;
 using Application.Services;
 using Application.UnitTests.Fakes;
 
@@ -59,7 +60,7 @@ public sealed class TopicServiceTests
     [Fact]
     public async Task GetByConferenceAsync_MissingConference_Throws()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.GetByConferenceAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetByConferenceAsync(42));
     }
 
     [Fact]
@@ -80,7 +81,7 @@ public sealed class TopicServiceTests
     [Fact]
     public async Task CreateAsync_MissingConference_ThrowsAndDoesNotAdd()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.CreateAsync(Dto(42)));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.CreateAsync(Dto(42)));
 
         Assert.Empty(_topics.Items);
         Assert.Equal(0, _topics.SaveChangesCalls);
@@ -107,7 +108,7 @@ public sealed class TopicServiceTests
     {
         var conference = _conferences.Seed();
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateAsync(42, Dto(conference.Id)));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(42, Dto(conference.Id)));
 
         Assert.Equal(0, _topics.SaveChangesCalls);
     }
@@ -118,7 +119,7 @@ public sealed class TopicServiceTests
         var conference = _conferences.Seed();
         var topic = _topics.Seed(conference.Id, "Original");
 
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.UpdateAsync(topic.Id, Dto(42)));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(topic.Id, Dto(42)));
 
         Assert.Equal("Original", topic.Name);
         Assert.Equal(conference.Id, topic.ConferenceId);
@@ -139,7 +140,7 @@ public sealed class TopicServiceTests
     [Fact]
     public async Task DeleteAsync_MissingTopic_Throws()
     {
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => _sut.DeleteAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.DeleteAsync(42));
 
         Assert.Equal(0, _topics.SaveChangesCalls);
     }

@@ -33,61 +33,29 @@ public class UsersController : ControllerBase
     [HttpPost("register-topic")]
     public async Task<IActionResult> RegisterToTopic(UserTopicDto dto)
     {
-        try
-        {
-            await _userService.RegisterToTopicAsync(dto);
-            return Ok("The user is successfully registered on the topic.");
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _userService.RegisterToTopicAsync(dto);
+        return Ok("The user is successfully registered on the topic.");
     }
 
     [HttpPost("unregister-topic")]
     public async Task<IActionResult> UnregisterFromTopic(UserTopicDto dto)
     {
-        try
-        {
-            await _userService.UnregisterFromTopicAsync(dto);
-            return Ok("The user is successfully unregistered from the topic.");
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        await _userService.UnregisterFromTopicAsync(dto);
+        return Ok("The user is successfully unregistered from the topic.");
     }
 
     [HttpGet("{userId}/topics")]
     public async Task<ActionResult<IEnumerable<Topic>>> GetUserTopics(int userId)
     {
-        try
-        {
-            var topics = await _userService.GetUserTopicsAsync(userId);
-            return Ok(topics);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var topics = await _userService.GetUserTopicsAsync(userId);
+        return Ok(topics);
     }
 
     [HttpGet("topic/{topicId}")]
     public async Task<ActionResult<IEnumerable<User>>> GetUsersByTopics(int topicId)
     {
-        try
-        {
-            var users = await _userService.GetUsersByTopicAsync(topicId);
-            return Ok(users);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
+        var users = await _userService.GetUsersByTopicAsync(topicId);
+        return Ok(users);
     }
 }
 

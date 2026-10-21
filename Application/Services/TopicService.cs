@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.Exceptions;
 using Application.Interfaces;
 using Domain.Entities;
 
@@ -24,7 +25,7 @@ public class TopicService : ITopicService
     {
         var conference = await _conferenceRepository.GetByIdAsync(conferenceId);
         if (conference is null)
-            throw new KeyNotFoundException($"Conference with ID {conferenceId} not found.");
+            throw new NotFoundException($"Conference with ID {conferenceId} not found.");
 
         return await _topicRepository.GetByConferenceIdAsync(conferenceId);
     }
@@ -33,7 +34,7 @@ public class TopicService : ITopicService
     {
         var conference = await _conferenceRepository.GetByIdAsync(dto.ConferenceId);
         if (conference is null)
-            throw new KeyNotFoundException($"Conference with ID {dto.ConferenceId} not found.");
+            throw new NotFoundException($"Conference with ID {dto.ConferenceId} not found.");
 
         var topic = new Topic
         {
@@ -50,11 +51,11 @@ public class TopicService : ITopicService
     public async Task<Topic> UpdateAsync(int id, TopicCreateDto dto)
     {
         var topic = await _topicRepository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Topic with ID {id} not found.");
+            ?? throw new NotFoundException($"Topic with ID {id} not found.");
 
         var conference = await _conferenceRepository.GetByIdAsync(dto.ConferenceId);
         if (conference is null)
-            throw new KeyNotFoundException($"Conference with ID {dto.ConferenceId} not found.");
+            throw new NotFoundException($"Conference with ID {dto.ConferenceId} not found.");
 
         topic.Name = dto.Name;
         topic.Description = dto.Description;
@@ -67,7 +68,7 @@ public class TopicService : ITopicService
     public async Task DeleteAsync(int id)
     {
         var topic = await _topicRepository.GetByIdAsync(id)
-            ?? throw new KeyNotFoundException($"Topic with ID {id} not found.");
+            ?? throw new NotFoundException($"Topic with ID {id} not found.");
 
         _topicRepository.Remove(topic);
         await _topicRepository.SaveChangesAsync();

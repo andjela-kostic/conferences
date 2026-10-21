@@ -10,7 +10,9 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 10
 - ✅ Many-to-many relationship between users and topics
 - ✅ Topic registration and unregistration for conference attendees
 - ✅ PostgreSQL database with Entity Framework Core
-- ✅ Swagger/OpenAPI documentation
+- ✅ OpenAPI document with [Scalar](https://scalar.com/) API reference (Development)
+- ✅ Errors as [ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457) (`application/problem+json`)
+- ✅ Health checks for liveness and readiness (database)
 - ✅ Modular architecture with DTOs, services, repositories, and controllers
 
 ## 🛠️ Tech Stack
@@ -19,7 +21,7 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 10
 - **ASP.NET Core Web API**
 - **Entity Framework Core 10**
 - **PostgreSQL** (via Npgsql EF Core provider)
-- **Swagger/OpenAPI**
+- **OpenAPI** (built-in `Microsoft.AspNetCore.OpenApi`) + **Scalar** UI
 
 Package versions are managed centrally in `Directory.Packages.props`; shared build settings
 (target framework, nullable, warnings as errors, code style) live in `Directory.Build.props`.
@@ -105,8 +107,21 @@ dotnet run --project API/API.csproj
 
 The API will be available at:
 - HTTP: `http://localhost:5018`
-- HTTPS: `https://localhost:7241`
-- Swagger UI: `http://localhost:5018/swagger/index.html`
+- HTTPS: `https://localhost:7241` (local profile only; in containers TLS is terminated by the ingress)
+- API reference (Scalar, Development only): `http://localhost:5018/scalar`
+- OpenAPI document (Development only): `http://localhost:5018/openapi/v1.json`
+- Health: `GET /health/live` (process is up) and `GET /health/ready` (database reachable)
+
+### Errors
+
+Errors are returned as ProblemDetails (`application/problem+json`):
+
+| Status | When |
+| --- | --- |
+| `400` | Invalid request body (model validation) |
+| `404` | A resource in the route **or** referenced in the body (e.g. `conferenceId`, `userId`, `topicId`) does not exist |
+| `409` | Conflicting state, e.g. registering a user for a topic twice |
+| `500` | Unexpected error (no internal details are exposed) |
 
 ## 📚 API Endpoints
 
@@ -194,4 +209,15 @@ Things to check for the database container on Container Apps:
 - **Networking** — the API reaches PostgreSQL through internal TCP ingress on `db` (port 5432); it must not be exposed externally.
 - For production data, Azure Database for PostgreSQL Flexible Server (backups, HA) is the safer option —
   only `ConnectionStrings__DefaultConnection` would change.
+
+Health probes for the `api` container app (Container App → Containers → Health probes):
+
+| Probe | Path | Port |
+| --- | --- | --- |
+| Liveness | `/health/live` | 8080 |
+| Readiness | `/health/ready` | 8080 |
+| Startup (optional) | `/health/live` | 8080 |
+
+Readiness takes a replica out of rotation while the database is unreachable; liveness does not check the
+database, so a database outage does not cause the API to be restarted in a loop.
 

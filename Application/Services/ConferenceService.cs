@@ -1,4 +1,5 @@
 using Application.DTOs;
+using Application.Exceptions;
 using Application.Interfaces;
 using Domain.Entities;
 
@@ -40,7 +41,7 @@ public class ConferenceService : IConferenceService
     public async Task<Conference> UpdateAsync(int id, ConferenceCreateDto dto)
     {
         var conference = await _conferenceRepository.GetByIdAsync(id)
-                         ?? throw new KeyNotFoundException($"Conference with ID {id} not found.");
+                         ?? throw new NotFoundException($"Conference with ID {id} not found.");
 
         var selectedTopics = await _topicRepository.GetByIdsAsync(dto.TopicIds);
 
@@ -56,7 +57,7 @@ public class ConferenceService : IConferenceService
     public async Task DeleteAsync(int id)
     {
         var conference = await _conferenceRepository.GetByIdAsync(id)
-                         ?? throw new KeyNotFoundException($"Conference with ID {id} not found.");
+                         ?? throw new NotFoundException($"Conference with ID {id} not found.");
 
         _conferenceRepository.Remove(conference);
         await _conferenceRepository.SaveChangesAsync();

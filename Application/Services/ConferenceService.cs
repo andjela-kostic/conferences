@@ -9,12 +9,10 @@ namespace Application.Services;
 public class ConferenceService : IConferenceService
 {
     private readonly IConferenceRepository _conferenceRepository;
-    private readonly ITopicRepository _topicRepository;
 
-    public ConferenceService(IConferenceRepository conferenceRepository, ITopicRepository topicRepository)
+    public ConferenceService(IConferenceRepository conferenceRepository)
     {
         _conferenceRepository = conferenceRepository;
-        _topicRepository = topicRepository;
     }
 
     public async Task<IReadOnlyList<ConferenceResponse>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -33,14 +31,11 @@ public class ConferenceService : IConferenceService
 
     public async Task<ConferenceResponse> CreateAsync(ConferenceCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var selectedTopics = await _topicRepository.GetByIdsAsync(dto.TopicIds, cancellationToken);
-
         var conference = new Conference
         {
             Name = dto.Name,
             Description = dto.Description,
             Date = dto.Date,
-            Topics = selectedTopics
         };
 
         _conferenceRepository.Add(conference);
@@ -53,12 +48,9 @@ public class ConferenceService : IConferenceService
         var conference = await _conferenceRepository.GetByIdAsync(id, cancellationToken)
                          ?? throw new NotFoundException($"Conference with ID {id} not found.");
 
-        var selectedTopics = await _topicRepository.GetByIdsAsync(dto.TopicIds, cancellationToken);
-
         conference.Name = dto.Name;
         conference.Description = dto.Description;
         conference.Date = dto.Date;
-        conference.Topics = selectedTopics;
 
         await _conferenceRepository.SaveChangesAsync(cancellationToken);
     }

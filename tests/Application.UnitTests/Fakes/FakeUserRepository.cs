@@ -33,6 +33,9 @@ public sealed class FakeUserRepository : IUserRepository
     public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default) =>
         Task.FromResult(Items.Any(u => u.Id == id));
 
+    public Task<bool> EmailExistsAsync(string email, int? excludeUserId = null, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Items.Any(u => u.Email == email && u.Id != excludeUserId));
+
     public void Add(User user)
     {
         user.Id = _nextId++;

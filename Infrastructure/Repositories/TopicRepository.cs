@@ -31,12 +31,6 @@ public class TopicRepository : ITopicRepository
         return _context.Topics.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
 
-    public Task<List<Topic>> GetByIdsAsync(IEnumerable<int> topicIds, CancellationToken cancellationToken = default)
-    {
-        return _context.Topics
-            .Where(t => topicIds.Contains(t.Id))
-            .ToListAsync(cancellationToken);
-    }
 
     public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
     {

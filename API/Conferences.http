@@ -9,8 +9,7 @@ Content-Type: application/json
 {
   "name": "Advanced .NET 9",
   "description": "Conference with specific topics",
-  "date": "2026-11-20T10:00:00Z",
-  "topicIds": [1, 2]
+  "date": "2026-11-20T10:00:00Z"
 }
 ###
 
@@ -26,8 +25,7 @@ Content-Type: application/json
 {
   "name": "Sinergija 2026 - Updated",
   "description": "New description for the conference",
-  "date": "2026-10-16T09:00:00Z",
-  "topicIds": [1]
+  "date": "2026-10-16T09:00:00Z"
 }
 
 ###
@@ -39,8 +37,7 @@ Content-Type: application/json
 {
   "name": "Non-existent Conference",
   "description": "This should fail",
-  "date": "2026-10-16T09:00:00Z",
-  "topicIds": []
+  "date": "2026-10-16T09:00:00Z"
 }
 
 ###
@@ -275,8 +272,7 @@ Content-Type: application/json
 {
   "name": "DevConf 2026",
   "description": "Developer Conference 2026",
-  "date": "2026-12-01T09:00:00Z",
-  "topicIds": []
+  "date": "2026-12-01T09:00:00Z"
 }
 
 ###

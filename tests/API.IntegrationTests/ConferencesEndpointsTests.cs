@@ -28,7 +28,6 @@ public sealed class ConferencesEndpointsTests(ApiFactory factory)
             Name = "Location test",
             Description = "x",
             Date = new DateTime(2027, 3, 1, 0, 0, 0, DateTimeKind.Utc),
-            TopicIds = Array.Empty<int>(),
         }, Ct);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -78,7 +77,6 @@ public sealed class ConferencesEndpointsTests(ApiFactory factory)
             Name = "Renamed",
             Description = "Updated",
             Date = new DateTime(2028, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            TopicIds = Array.Empty<int>(),
         }, Ct);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -94,7 +92,6 @@ public sealed class ConferencesEndpointsTests(ApiFactory factory)
             Name = "X",
             Description = "X",
             Date = DateTime.UtcNow,
-            TopicIds = Array.Empty<int>(),
         }, Ct);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

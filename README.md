@@ -12,6 +12,7 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 10
 - ✅ PostgreSQL database with Entity Framework Core
 - ✅ OpenAPI document with [Scalar](https://scalar.com/) API reference (Development)
 - ✅ Errors as [ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457) (`application/problem+json`)
+- ✅ Request validation (DataAnnotations) backed by database constraints (column lengths, unique e-mail and registration)
 - ✅ Health checks for liveness and readiness (database)
 - ✅ Modular architecture with DTOs, services, repositories, and controllers
 
@@ -100,6 +101,10 @@ dotnet tool restore
 dotnet ef database update --project Infrastructure --startup-project API
 ```
 
+> **Upgrading an existing database:** the `AddValidationConstraints` migration lowercases existing e-mail addresses and
+> removes duplicate topic registrations before adding the unique indexes. It fails (and changes nothing) if two users
+> end up with the same e-mail address or a text value is longer than the new limit — fix those rows and run it again.
+
 ### 4. Run the Application
 ```bash
 dotnet run --project API/API.csproj
@@ -118,10 +123,27 @@ Errors are returned as ProblemDetails (`application/problem+json`):
 
 | Status | When |
 | --- | --- |
-| `400` | Invalid request body (model validation) |
+| `400` | Invalid request body — `ValidationProblemDetails` with an `errors` entry per invalid field (see [Validation](#validation)) |
 | `404` | A resource in the route **or** referenced in the body (e.g. `conferenceId`, `userId`, `topicId`) does not exist |
-| `409` | Conflicting state, e.g. registering a user for a topic twice |
+| `409` | Conflicting state: the e-mail address is already used by another user, or the user is already registered for the topic |
 | `500` | Unexpected error (no internal details are exposed) |
+
+### Validation
+
+| Field | Rules |
+| --- | --- |
+| Conference / topic `name` | required, max 200 characters |
+| Conference / topic `description` | required, max 2000 characters |
+| Conference `date` | required, **UTC only** — ISO 8601 ending in `Z` (e.g. `2027-06-01T09:00:00Z`); values without a time zone or with an offset are rejected |
+| Topic `conferenceId`, registration `userId` / `topicId` | positive integer |
+| User `firstName` / `lastName` | required, max 100 characters |
+| User `email` | required, valid address, max 254 characters, **unique**; stored trimmed and in lowercase, so `Ana@Example.com` and `ana@example.com` are the same address |
+
+The same lengths and uniqueness rules are enforced by the database (`varchar(n)` columns, unique indexes on
+`Users.Email` and `UserTopics (UserId, TopicId)`), so concurrent requests cannot create duplicates either — they get `409`.
+
+A topic belongs to exactly one conference: topics are created with `POST /api/topics` and moved to another conference
+by changing `conferenceId` with `PUT /api/topics/{id}`. The conference endpoints do not accept topic IDs.
 
 ## 📚 API Endpoints
 

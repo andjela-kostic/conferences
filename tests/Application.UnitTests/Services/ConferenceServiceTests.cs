@@ -15,15 +15,14 @@ public sealed class ConferenceServiceTests
 
     public ConferenceServiceTests()
     {
-        _sut = new ConferenceService(_conferences, _topics);
+        _sut = new ConferenceService(_conferences);
     }
 
-    private static ConferenceCreateDto Dto(params int[] topicIds) => new()
+    private static ConferenceCreateDto Dto() => new()
     {
         Name = "DotNetConf",
         Description = "Yearly .NET conference",
         Date = new DateTime(2026, 11, 10, 9, 0, 0, DateTimeKind.Utc),
-        TopicIds = [.. topicIds],
     };
 
     [Fact]
@@ -52,27 +51,6 @@ public sealed class ConferenceServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_AttachesExistingTopics()
-    {
-        var first = _topics.Seed(conferenceId: 99);
-        var second = _topics.Seed(conferenceId: 99);
-
-        var conference = await _sut.CreateAsync(Dto(first.Id, second.Id), Ct);
-
-        Assert.Equal([first.Id, second.Id], conference.Topics.Select(t => t.Id));
-    }
-
-    [Fact]
-    public async Task CreateAsync_UnknownTopicIds_AreSilentlyIgnored()
-    {
-        var existing = _topics.Seed(conferenceId: 99);
-
-        var conference = await _sut.CreateAsync(Dto(existing.Id, 12345), Ct);
-
-        Assert.Equal([existing.Id], conference.Topics.Select(t => t.Id));
-    }
-
-    [Fact]
     public async Task GetByIdAsync_ExistingConference_ReturnsItWithTopics()
     {
         var conference = _conferences.Seed("A");
@@ -93,11 +71,12 @@ public sealed class ConferenceServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_UpdatesFieldsAndTopics()
+    public async Task UpdateAsync_UpdatesFieldsAndKeepsTopics()
     {
         var conference = _conferences.Seed("Old");
-        var topic = _topics.Seed(conferenceId: 99);
-        var dto = Dto(topic.Id);
+        var topic = _topics.Seed(conference.Id);
+        conference.Topics.Add(topic);
+        var dto = Dto();
 
         await _sut.UpdateAsync(conference.Id, dto, Ct);
 

@@ -12,6 +12,8 @@ public sealed class UserServiceTests
     private readonly FakeUserTopicRepository _registrations;
     private readonly UserService _sut;
 
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
     public UserServiceTests()
     {
         _registrations = new FakeUserTopicRepository(_users, _topics);
@@ -24,7 +26,7 @@ public sealed class UserServiceTests
         _users.Seed("Ana");
         _users.Seed("Marko");
 
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAllAsync(Ct);
 
         Assert.Equal(["Ana", "Marko"], result.Select(u => u.FirstName));
     }
@@ -34,7 +36,7 @@ public sealed class UserServiceTests
     {
         var dto = new UserCreateDto { FirstName = "Ana", LastName = "Anić", Email = "ana@example.com" };
 
-        var user = await _sut.RegisterUserAsync(dto);
+        var user = await _sut.RegisterUserAsync(dto, Ct);
 
         Assert.Single(_users.Items);
         Assert.Equal(dto.FirstName, user.FirstName);
@@ -44,12 +46,68 @@ public sealed class UserServiceTests
     }
 
     [Fact]
+    public async Task GetByIdAsync_ExistingUser_ReturnsIt()
+    {
+        var user = _users.Seed("Ana");
+
+        var result = await _sut.GetByIdAsync(user.Id, Ct);
+
+        Assert.Equal(new UserResponse(user.Id, "Ana", user.LastName, user.Email), result);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_MissingUser_Throws()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetByIdAsync(42, Ct));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ExistingUser_UpdatesFieldsAndSaves()
+    {
+        var user = _users.Seed("Ana");
+        var dto = new UserCreateDto { FirstName = "Ana", LastName = "Petrović", Email = "ana.p@example.com" };
+
+        await _sut.UpdateAsync(user.Id, dto, Ct);
+
+        Assert.Equal("Petrović", user.LastName);
+        Assert.Equal("ana.p@example.com", user.Email);
+        Assert.Equal(1, _users.SaveChangesCalls);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_MissingUser_ThrowsAndDoesNotSave()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(42, new UserCreateDto(), Ct));
+
+        Assert.Equal(0, _users.SaveChangesCalls);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ExistingUser_RemovesIt()
+    {
+        var user = _users.Seed();
+
+        await _sut.DeleteAsync(user.Id, Ct);
+
+        Assert.Empty(_users.Items);
+        Assert.Equal(1, _users.SaveChangesCalls);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_MissingUser_ThrowsAndDoesNotSave()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.DeleteAsync(42, Ct));
+
+        Assert.Equal(0, _users.SaveChangesCalls);
+    }
+
+    [Fact]
     public async Task RegisterToTopicAsync_ValidUserAndTopic_AddsRegistration()
     {
         var user = _users.Seed();
         var topic = _topics.Seed(conferenceId: 1);
 
-        await _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = topic.Id });
+        await _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = topic.Id }, Ct);
 
         var registration = Assert.Single(_registrations.Items);
         Assert.Equal(user.Id, registration.UserId);
@@ -63,7 +121,7 @@ public sealed class UserServiceTests
         var topic = _topics.Seed(conferenceId: 1);
 
         await Assert.ThrowsAsync<NotFoundException>(
-            () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = 42, TopicId = topic.Id }));
+            () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = 42, TopicId = topic.Id }, Ct));
 
         Assert.Empty(_registrations.Items);
     }
@@ -74,7 +132,7 @@ public sealed class UserServiceTests
         var user = _users.Seed();
 
         await Assert.ThrowsAsync<NotFoundException>(
-            () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = 42 }));
+            () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = 42 }, Ct));
 
         Assert.Empty(_registrations.Items);
     }
@@ -87,7 +145,7 @@ public sealed class UserServiceTests
         _registrations.Seed(user.Id, topic.Id);
 
         await Assert.ThrowsAsync<ConflictException>(
-            () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = topic.Id }));
+            () => _sut.RegisterToTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = topic.Id }, Ct));
 
         Assert.Single(_registrations.Items);
         Assert.Equal(0, _registrations.SaveChangesCalls);
@@ -100,7 +158,7 @@ public sealed class UserServiceTests
         var topic = _topics.Seed(conferenceId: 1);
         _registrations.Seed(user.Id, topic.Id);
 
-        await _sut.UnregisterFromTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = topic.Id });
+        await _sut.UnregisterFromTopicAsync(new UserTopicDto { UserId = user.Id, TopicId = topic.Id }, Ct);
 
         Assert.Empty(_registrations.Items);
         Assert.Equal(1, _registrations.SaveChangesCalls);
@@ -110,7 +168,7 @@ public sealed class UserServiceTests
     public async Task UnregisterFromTopicAsync_MissingRegistration_Throws()
     {
         await Assert.ThrowsAsync<NotFoundException>(
-            () => _sut.UnregisterFromTopicAsync(new UserTopicDto { UserId = 1, TopicId = 1 }));
+            () => _sut.UnregisterFromTopicAsync(new UserTopicDto { UserId = 1, TopicId = 1 }, Ct));
 
         Assert.Equal(0, _registrations.SaveChangesCalls);
     }
@@ -123,7 +181,7 @@ public sealed class UserServiceTests
         _topics.Seed(conferenceId: 1, "Other");
         _registrations.Seed(user.Id, registered.Id);
 
-        var result = await _sut.GetUserTopicsAsync(user.Id);
+        var result = await _sut.GetUserTopicsAsync(user.Id, Ct);
 
         Assert.Equal([registered.Id], result.Select(t => t.Id));
     }
@@ -133,7 +191,7 @@ public sealed class UserServiceTests
     {
         var user = _users.Seed();
 
-        var result = await _sut.GetUserTopicsAsync(user.Id);
+        var result = await _sut.GetUserTopicsAsync(user.Id, Ct);
 
         Assert.Empty(result);
     }
@@ -141,7 +199,7 @@ public sealed class UserServiceTests
     [Fact]
     public async Task GetUserTopicsAsync_MissingUser_Throws()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetUserTopicsAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetUserTopicsAsync(42, Ct));
     }
 
     [Fact]
@@ -152,7 +210,7 @@ public sealed class UserServiceTests
         _users.Seed("Marko");
         _registrations.Seed(registered.Id, topic.Id);
 
-        var result = await _sut.GetUsersByTopicAsync(topic.Id);
+        var result = await _sut.GetUsersByTopicAsync(topic.Id, Ct);
 
         Assert.Equal([registered.Id], result.Select(u => u.Id));
     }
@@ -160,7 +218,6 @@ public sealed class UserServiceTests
     [Fact]
     public async Task GetUsersByTopicAsync_MissingTopic_Throws()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetUsersByTopicAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetUsersByTopicAsync(42, Ct));
     }
 }
-

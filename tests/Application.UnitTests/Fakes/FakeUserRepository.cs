@@ -3,7 +3,6 @@ using Domain.Entities;
 
 namespace Application.UnitTests.Fakes;
 
-/// <summary>In-memory <see cref="IUserRepository"/> for service tests.</summary>
 public sealed class FakeUserRepository : IUserRepository
 {
     private int _nextId = 1;
@@ -39,6 +38,8 @@ public sealed class FakeUserRepository : IUserRepository
         user.Id = _nextId++;
         Items.Add(user);
     }
+
+    public void Remove(User user) => Items.Remove(user);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

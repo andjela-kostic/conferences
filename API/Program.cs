@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using API.ExceptionHandling;
 using Application;
 using Infrastructure;
@@ -11,11 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    });
+builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();
 

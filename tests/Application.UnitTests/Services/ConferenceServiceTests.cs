@@ -11,6 +11,8 @@ public sealed class ConferenceServiceTests
     private readonly FakeTopicRepository _topics = new();
     private readonly ConferenceService _sut;
 
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
     public ConferenceServiceTests()
     {
         _sut = new ConferenceService(_conferences, _topics);
@@ -30,7 +32,7 @@ public sealed class ConferenceServiceTests
         _conferences.Seed("A");
         _conferences.Seed("B");
 
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAllAsync(Ct);
 
         Assert.Equal(["A", "B"], result.Select(c => c.Name));
     }
@@ -40,7 +42,7 @@ public sealed class ConferenceServiceTests
     {
         var dto = Dto();
 
-        var conference = await _sut.CreateAsync(dto);
+        var conference = await _sut.CreateAsync(dto, Ct);
 
         Assert.Single(_conferences.Items);
         Assert.Equal(dto.Name, conference.Name);
@@ -55,7 +57,7 @@ public sealed class ConferenceServiceTests
         var first = _topics.Seed(conferenceId: 99);
         var second = _topics.Seed(conferenceId: 99);
 
-        var conference = await _sut.CreateAsync(Dto(first.Id, second.Id));
+        var conference = await _sut.CreateAsync(Dto(first.Id, second.Id), Ct);
 
         Assert.Equal([first.Id, second.Id], conference.Topics.Select(t => t.Id));
     }
@@ -63,12 +65,31 @@ public sealed class ConferenceServiceTests
     [Fact]
     public async Task CreateAsync_UnknownTopicIds_AreSilentlyIgnored()
     {
-        // Documents current behavior; see IMPROVEMENT_PLAN phase 7 (topic association semantics).
         var existing = _topics.Seed(conferenceId: 99);
 
-        var conference = await _sut.CreateAsync(Dto(existing.Id, 12345));
+        var conference = await _sut.CreateAsync(Dto(existing.Id, 12345), Ct);
 
         Assert.Equal([existing.Id], conference.Topics.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ExistingConference_ReturnsItWithTopics()
+    {
+        var conference = _conferences.Seed("A");
+        var topic = _topics.Seed(conference.Id);
+        conference.Topics.Add(topic);
+
+        var result = await _sut.GetByIdAsync(conference.Id, Ct);
+
+        Assert.Equal(conference.Id, result.Id);
+        Assert.Equal("A", result.Name);
+        Assert.Equal([topic.Id], result.Topics.Select(t => t.Id));
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_MissingConference_Throws()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetByIdAsync(42, Ct));
     }
 
     [Fact]
@@ -78,20 +99,19 @@ public sealed class ConferenceServiceTests
         var topic = _topics.Seed(conferenceId: 99);
         var dto = Dto(topic.Id);
 
-        var updated = await _sut.UpdateAsync(conference.Id, dto);
+        await _sut.UpdateAsync(conference.Id, dto, Ct);
 
-        Assert.Same(conference, updated);
-        Assert.Equal(dto.Name, updated.Name);
-        Assert.Equal(dto.Description, updated.Description);
-        Assert.Equal(dto.Date, updated.Date);
-        Assert.Equal([topic.Id], updated.Topics.Select(t => t.Id));
+        Assert.Equal(dto.Name, conference.Name);
+        Assert.Equal(dto.Description, conference.Description);
+        Assert.Equal(dto.Date, conference.Date);
+        Assert.Equal([topic.Id], conference.Topics.Select(t => t.Id));
         Assert.Equal(1, _conferences.SaveChangesCalls);
     }
 
     [Fact]
     public async Task UpdateAsync_MissingConference_ThrowsAndDoesNotSave()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(42, Dto()));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(42, Dto(), Ct));
 
         Assert.Equal(0, _conferences.SaveChangesCalls);
     }
@@ -101,7 +121,7 @@ public sealed class ConferenceServiceTests
     {
         var conference = _conferences.Seed();
 
-        await _sut.DeleteAsync(conference.Id);
+        await _sut.DeleteAsync(conference.Id, Ct);
 
         Assert.Empty(_conferences.Items);
         Assert.Equal(1, _conferences.SaveChangesCalls);
@@ -110,9 +130,8 @@ public sealed class ConferenceServiceTests
     [Fact]
     public async Task DeleteAsync_MissingConference_ThrowsAndDoesNotSave()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.DeleteAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.DeleteAsync(42, Ct));
 
         Assert.Equal(0, _conferences.SaveChangesCalls);
     }
 }
-

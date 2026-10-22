@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.Exceptions;
 using Application.Interfaces;
+using Application.Mappings;
 using Domain.Entities;
 
 namespace Application.Services;
@@ -16,14 +17,23 @@ public class ConferenceService : IConferenceService
         _topicRepository = topicRepository;
     }
 
-    public async Task<IEnumerable<Conference>> GetAllAsync()
+    public async Task<IReadOnlyList<ConferenceResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _conferenceRepository.GetAllWithTopicsAsync();
+        var conferences = await _conferenceRepository.GetAllWithTopicsAsync(cancellationToken);
+        return [.. conferences.Select(c => c.ToResponse())];
     }
 
-    public async Task<Conference> CreateAsync(ConferenceCreateDto dto)
+    public async Task<ConferenceResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var selectedTopics = await _topicRepository.GetByIdsAsync(dto.TopicIds);
+        var conference = await _conferenceRepository.GetByIdWithTopicsAsync(id, cancellationToken)
+                         ?? throw new NotFoundException($"Conference with ID {id} not found.");
+
+        return conference.ToResponse();
+    }
+
+    public async Task<ConferenceResponse> CreateAsync(ConferenceCreateDto dto, CancellationToken cancellationToken = default)
+    {
+        var selectedTopics = await _topicRepository.GetByIdsAsync(dto.TopicIds, cancellationToken);
 
         var conference = new Conference
         {
@@ -34,32 +44,31 @@ public class ConferenceService : IConferenceService
         };
 
         _conferenceRepository.Add(conference);
-        await _conferenceRepository.SaveChangesAsync();
-        return conference;
+        await _conferenceRepository.SaveChangesAsync(cancellationToken);
+        return conference.ToResponse();
     }
 
-    public async Task<Conference> UpdateAsync(int id, ConferenceCreateDto dto)
+    public async Task UpdateAsync(int id, ConferenceCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var conference = await _conferenceRepository.GetByIdAsync(id)
+        var conference = await _conferenceRepository.GetByIdAsync(id, cancellationToken)
                          ?? throw new NotFoundException($"Conference with ID {id} not found.");
 
-        var selectedTopics = await _topicRepository.GetByIdsAsync(dto.TopicIds);
+        var selectedTopics = await _topicRepository.GetByIdsAsync(dto.TopicIds, cancellationToken);
 
         conference.Name = dto.Name;
         conference.Description = dto.Description;
         conference.Date = dto.Date;
         conference.Topics = selectedTopics;
 
-        await _conferenceRepository.SaveChangesAsync();
-        return conference;
+        await _conferenceRepository.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var conference = await _conferenceRepository.GetByIdAsync(id)
+        var conference = await _conferenceRepository.GetByIdAsync(id, cancellationToken)
                          ?? throw new NotFoundException($"Conference with ID {id} not found.");
 
         _conferenceRepository.Remove(conference);
-        await _conferenceRepository.SaveChangesAsync();
+        await _conferenceRepository.SaveChangesAsync(cancellationToken);
     }
 }

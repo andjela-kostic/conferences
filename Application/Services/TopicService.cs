@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.Exceptions;
 using Application.Interfaces;
+using Application.Mappings;
 using Domain.Entities;
 
 namespace Application.Services;
@@ -16,25 +17,31 @@ public class TopicService : ITopicService
         _conferenceRepository = conferenceRepository;
     }
 
-    public async Task<IEnumerable<Topic>> GetAllAsync()
+    public async Task<IReadOnlyList<TopicResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _topicRepository.GetAllAsync();
+        var topics = await _topicRepository.GetAllAsync(cancellationToken);
+        return [.. topics.Select(t => t.ToResponse())];
     }
 
-    public async Task<IEnumerable<Topic>> GetByConferenceAsync(int conferenceId)
+    public async Task<TopicResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var conference = await _conferenceRepository.GetByIdAsync(conferenceId);
-        if (conference is null)
-            throw new NotFoundException($"Conference with ID {conferenceId} not found.");
+        var topic = await _topicRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException($"Topic with ID {id} not found.");
 
-        return await _topicRepository.GetByConferenceIdAsync(conferenceId);
+        return topic.ToResponse();
     }
 
-    public async Task<Topic> CreateAsync(TopicCreateDto dto)
+    public async Task<IReadOnlyList<TopicResponse>> GetByConferenceAsync(int conferenceId, CancellationToken cancellationToken = default)
     {
-        var conference = await _conferenceRepository.GetByIdAsync(dto.ConferenceId);
-        if (conference is null)
-            throw new NotFoundException($"Conference with ID {dto.ConferenceId} not found.");
+        await EnsureConferenceExistsAsync(conferenceId, cancellationToken);
+
+        var topics = await _topicRepository.GetByConferenceIdAsync(conferenceId, cancellationToken);
+        return [.. topics.Select(t => t.ToResponse())];
+    }
+
+    public async Task<TopicResponse> CreateAsync(TopicCreateDto dto, CancellationToken cancellationToken = default)
+    {
+        await EnsureConferenceExistsAsync(dto.ConferenceId, cancellationToken);
 
         var topic = new Topic
         {
@@ -44,33 +51,36 @@ public class TopicService : ITopicService
         };
 
         _topicRepository.Add(topic);
-        await _topicRepository.SaveChangesAsync();
-        return topic;
+        await _topicRepository.SaveChangesAsync(cancellationToken);
+        return topic.ToResponse();
     }
 
-    public async Task<Topic> UpdateAsync(int id, TopicCreateDto dto)
+    public async Task UpdateAsync(int id, TopicCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var topic = await _topicRepository.GetByIdAsync(id)
+        var topic = await _topicRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException($"Topic with ID {id} not found.");
 
-        var conference = await _conferenceRepository.GetByIdAsync(dto.ConferenceId);
-        if (conference is null)
-            throw new NotFoundException($"Conference with ID {dto.ConferenceId} not found.");
+        await EnsureConferenceExistsAsync(dto.ConferenceId, cancellationToken);
 
         topic.Name = dto.Name;
         topic.Description = dto.Description;
         topic.ConferenceId = dto.ConferenceId;
 
-        await _topicRepository.SaveChangesAsync();
-        return topic;
+        await _topicRepository.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var topic = await _topicRepository.GetByIdAsync(id)
+        var topic = await _topicRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException($"Topic with ID {id} not found.");
 
         _topicRepository.Remove(topic);
-        await _topicRepository.SaveChangesAsync();
+        await _topicRepository.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task EnsureConferenceExistsAsync(int conferenceId, CancellationToken cancellationToken)
+    {
+        if (!await _conferenceRepository.ExistsAsync(conferenceId, cancellationToken))
+            throw new NotFoundException($"Conference with ID {conferenceId} not found.");
     }
 }

@@ -1,12 +1,12 @@
 using Application.DTOs;
-using Domain.Entities;
 
 namespace Application.Interfaces;
 
 public interface IConferenceService
 {
-    Task<IEnumerable<Conference>> GetAllAsync();
-    Task<Conference> CreateAsync(ConferenceCreateDto dto);
-    Task<Conference> UpdateAsync(int id, ConferenceCreateDto dto);
-    Task DeleteAsync(int id);
+    Task<IReadOnlyList<ConferenceResponse>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<ConferenceResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<ConferenceResponse> CreateAsync(ConferenceCreateDto dto, CancellationToken cancellationToken = default);
+    Task UpdateAsync(int id, ConferenceCreateDto dto, CancellationToken cancellationToken = default);
+    Task DeleteAsync(int id, CancellationToken cancellationToken = default);
 }

@@ -8,6 +8,7 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default);
     void Add(User user);
+    void Remove(User user);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 

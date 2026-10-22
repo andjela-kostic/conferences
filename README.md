@@ -125,14 +125,20 @@ Errors are returned as ProblemDetails (`application/problem+json`):
 
 ## 📚 API Endpoints
 
+Responses are JSON DTOs (`ConferenceResponse`, `TopicResponse`, `UserResponse`), never database entities.
+`POST` returns `201 Created` with a `Location` header pointing to the new resource; `PUT`/`DELETE` return `204 No Content`.
+The full, always up-to-date contract (with descriptions) is in the OpenAPI document / Scalar UI.
+
 ### Conferences
-- `GET /api/conferences` - Get all conferences
+- `GET /api/conferences` - Get all conferences (with their topics)
+- `GET /api/conferences/{id}` - Get a conference (with its topics)
 - `POST /api/conferences` - Create a new conference
 - `PUT /api/conferences/{id}` - Update a conference
-- `DELETE /api/conferences/{id}` - Delete a conference
+- `DELETE /api/conferences/{id}` - Delete a conference (and its topics)
 
 ### Topics
 - `GET /api/topics` - Get all topics
+- `GET /api/topics/{id}` - Get a topic
 - `GET /api/topics/conference/{conferenceId}` - Get topics for a specific conference
 - `POST /api/topics` - Create a new topic
 - `PUT /api/topics/{id}` - Update a topic
@@ -140,9 +146,12 @@ Errors are returned as ProblemDetails (`application/problem+json`):
 
 ### Users
 - `GET /api/users` - Get all users
+- `GET /api/users/{id}` - Get a user
 - `POST /api/users` - Register a new user
-- `POST /api/users/register-topic` - Register user to a topic
-- `POST /api/users/unregister-topic` - Unregister user from a topic
+- `PUT /api/users/{id}` - Update a user
+- `DELETE /api/users/{id}` - Delete a user (and their topic registrations)
+- `POST /api/users/register-topic` - Register user to a topic (`204`, or `409` if already registered)
+- `POST /api/users/unregister-topic` - Unregister user from a topic (`204`)
 - `GET /api/users/{userId}/topics` - Get all topics a user is registered for
 - `GET /api/users/topic/{topicId}` - Get all users registered for a topic
 

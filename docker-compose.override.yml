@@ -1,14 +1,9 @@
-# Local-only additions, merged automatically by `docker compose` (not used by Azure).
-
 services:
   db:
     ports:
-      # Lets `dotnet run` / `dotnet ef` on the host reach the database.
-      # Change POSTGRES_PORT if 5432 is taken by a local PostgreSQL.
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
 
   api:
-    # Build from source instead of pulling the published image.
     build:
       context: .
       dockerfile: API/Dockerfile

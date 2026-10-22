@@ -3,7 +3,6 @@ using Domain.Entities;
 
 namespace Application.UnitTests.Fakes;
 
-/// <summary>In-memory <see cref="ITopicRepository"/> for service tests.</summary>
 public sealed class FakeTopicRepository : ITopicRepository
 {
     private int _nextId = 1;

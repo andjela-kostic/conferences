@@ -3,10 +3,6 @@ using Domain.Entities;
 
 namespace Application.UnitTests.Fakes;
 
-/// <summary>
-/// In-memory <see cref="IUserTopicRepository"/>. Resolves users and topics
-/// from the other fakes, like the real repository joins through the database.
-/// </summary>
 public sealed class FakeUserTopicRepository(FakeUserRepository users, FakeTopicRepository topics) : IUserTopicRepository
 {
     private int _nextId = 1;

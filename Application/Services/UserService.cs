@@ -1,6 +1,7 @@
 using Application.DTOs;
 using Application.Exceptions;
 using Application.Interfaces;
+using Application.Mappings;
 using Domain.Entities;
 
 namespace Application.Services;
@@ -21,12 +22,19 @@ public class UserService : IUserService
         _userTopicRepository = userTopicRepository;
     }
 
-    public async Task<IEnumerable<User>> GetAllAsync()
+    public async Task<IReadOnlyList<UserResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await _userRepository.GetAllAsync();
+        var users = await _userRepository.GetAllAsync(cancellationToken);
+        return [.. users.Select(u => u.ToResponse())];
     }
 
-    public async Task<User> RegisterUserAsync(UserCreateDto dto)
+    public async Task<UserResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var user = await GetUserAsync(id, cancellationToken);
+        return user.ToResponse();
+    }
+
+    public async Task<UserResponse> RegisterUserAsync(UserCreateDto dto, CancellationToken cancellationToken = default)
     {
         var user = new User
         {
@@ -36,49 +44,74 @@ public class UserService : IUserService
         };
 
         _userRepository.Add(user);
-        await _userRepository.SaveChangesAsync();
-        return user;
+        await _userRepository.SaveChangesAsync(cancellationToken);
+        return user.ToResponse();
     }
 
-    public async Task RegisterToTopicAsync(UserTopicDto dto)
+    public async Task UpdateAsync(int id, UserCreateDto dto, CancellationToken cancellationToken = default)
     {
-        var userExists = await _userRepository.ExistsAsync(dto.UserId);
-        var topicExists = await _topicRepository.ExistsAsync(dto.TopicId);
+        var user = await GetUserAsync(id, cancellationToken);
+
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.Email = dto.Email;
+
+        await _userRepository.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var user = await GetUserAsync(id, cancellationToken);
+
+        _userRepository.Remove(user);
+        await _userRepository.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task RegisterToTopicAsync(UserTopicDto dto, CancellationToken cancellationToken = default)
+    {
+        var userExists = await _userRepository.ExistsAsync(dto.UserId, cancellationToken);
+        var topicExists = await _topicRepository.ExistsAsync(dto.TopicId, cancellationToken);
         if (!userExists || !topicExists)
             throw new NotFoundException("User or Topic not found.");
 
-        var alreadyRegistered = await _userTopicRepository.ExistsAsync(dto.UserId, dto.TopicId);
+        var alreadyRegistered = await _userTopicRepository.ExistsAsync(dto.UserId, dto.TopicId, cancellationToken);
         if (alreadyRegistered)
             throw new ConflictException("User is already registered for this topic.");
 
         _userTopicRepository.Add(new UserTopic { UserId = dto.UserId, TopicId = dto.TopicId });
-        await _userTopicRepository.SaveChangesAsync();
+        await _userTopicRepository.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UnregisterFromTopicAsync(UserTopicDto dto)
+    public async Task UnregisterFromTopicAsync(UserTopicDto dto, CancellationToken cancellationToken = default)
     {
-        var userTopic = await _userTopicRepository.GetByUserAndTopicAsync(dto.UserId, dto.TopicId)
+        var userTopic = await _userTopicRepository.GetByUserAndTopicAsync(dto.UserId, dto.TopicId, cancellationToken)
             ?? throw new NotFoundException("Registration not found.");
 
         _userTopicRepository.Remove(userTopic);
-        await _userTopicRepository.SaveChangesAsync();
+        await _userTopicRepository.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Topic>> GetUserTopicsAsync(int userId)
+    public async Task<IReadOnlyList<TopicResponse>> GetUserTopicsAsync(int userId, CancellationToken cancellationToken = default)
     {
-        var userExists = await _userRepository.ExistsAsync(userId);
+        var userExists = await _userRepository.ExistsAsync(userId, cancellationToken);
         if (!userExists)
             throw new NotFoundException($"User with ID {userId} not found.");
 
-        return await _userTopicRepository.GetTopicsByUserIdAsync(userId);
+        var topics = await _userTopicRepository.GetTopicsByUserIdAsync(userId, cancellationToken);
+        return [.. topics.Select(t => t.ToResponse())];
     }
 
-    public async Task<IEnumerable<User>> GetUsersByTopicAsync(int topicId)
+    public async Task<IReadOnlyList<UserResponse>> GetUsersByTopicAsync(int topicId, CancellationToken cancellationToken = default)
     {
-        var topicExists = await _topicRepository.ExistsAsync(topicId);
+        var topicExists = await _topicRepository.ExistsAsync(topicId, cancellationToken);
         if (!topicExists)
             throw new NotFoundException($"Topic with ID {topicId} not found.");
 
-        return await _userTopicRepository.GetUsersByTopicIdAsync(topicId);
+        var users = await _userTopicRepository.GetUsersByTopicIdAsync(topicId, cancellationToken);
+        return [.. users.Select(u => u.ToResponse())];
     }
+
+    private async Task<User> GetUserAsync(int id, CancellationToken cancellationToken) =>
+        await _userRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new NotFoundException($"User with ID {id} not found.");
 }

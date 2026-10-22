@@ -10,9 +10,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <AnalysisLevel>latest-recommended</AnalysisLevel>
 
-        <!-- Required for IDE0005 (unnecessary usings) to run during build. -->
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <!-- CS1591: missing XML comments. Re-enable once API docs are written (phase 6). -->
         <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>
 

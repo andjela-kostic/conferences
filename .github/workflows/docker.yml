@@ -1,13 +1,5 @@
 name: Docker image
 
-# Builds the API image and pushes it to GitHub Container Registry
-# (ghcr.io/<owner>/conferences-api) after a merge to main, but only once the
-# CI workflow (format, build, tests) has succeeded for that commit.
-# Pull requests never build or push images.
-#
-# Note: workflow_run triggers only work from the workflow file on the default
-# branch, so this starts running after it has been merged to main.
-
 on:
   workflow_run:
     workflows: [CI]
@@ -65,5 +57,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-

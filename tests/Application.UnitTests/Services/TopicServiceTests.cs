@@ -11,6 +11,8 @@ public sealed class TopicServiceTests
     private readonly FakeConferenceRepository _conferences = new();
     private readonly TopicService _sut;
 
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
     public TopicServiceTests()
     {
         _sut = new TopicService(_topics, _conferences);
@@ -29,9 +31,25 @@ public sealed class TopicServiceTests
         _topics.Seed(conferenceId: 1);
         _topics.Seed(conferenceId: 2);
 
-        var result = await _sut.GetAllAsync();
+        var result = await _sut.GetAllAsync(Ct);
 
-        Assert.Equal(2, result.Count());
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ExistingTopic_ReturnsIt()
+    {
+        var topic = _topics.Seed(conferenceId: 1, "Minimal APIs");
+
+        var result = await _sut.GetByIdAsync(topic.Id, Ct);
+
+        Assert.Equal(new TopicResponse(topic.Id, "Minimal APIs", topic.Description, 1), result);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_MissingTopic_Throws()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetByIdAsync(42, Ct));
     }
 
     [Fact]
@@ -42,7 +60,7 @@ public sealed class TopicServiceTests
         var mine = _topics.Seed(conference.Id);
         _topics.Seed(other.Id);
 
-        var result = await _sut.GetByConferenceAsync(conference.Id);
+        var result = await _sut.GetByConferenceAsync(conference.Id, Ct);
 
         Assert.Equal([mine.Id], result.Select(t => t.Id));
     }
@@ -52,7 +70,7 @@ public sealed class TopicServiceTests
     {
         var conference = _conferences.Seed();
 
-        var result = await _sut.GetByConferenceAsync(conference.Id);
+        var result = await _sut.GetByConferenceAsync(conference.Id, Ct);
 
         Assert.Empty(result);
     }
@@ -60,7 +78,7 @@ public sealed class TopicServiceTests
     [Fact]
     public async Task GetByConferenceAsync_MissingConference_Throws()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetByConferenceAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.GetByConferenceAsync(42, Ct));
     }
 
     [Fact]
@@ -69,7 +87,7 @@ public sealed class TopicServiceTests
         var conference = _conferences.Seed();
         var dto = Dto(conference.Id);
 
-        var topic = await _sut.CreateAsync(dto);
+        var topic = await _sut.CreateAsync(dto, Ct);
 
         Assert.Single(_topics.Items);
         Assert.Equal(dto.Name, topic.Name);
@@ -81,7 +99,7 @@ public sealed class TopicServiceTests
     [Fact]
     public async Task CreateAsync_MissingConference_ThrowsAndDoesNotAdd()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.CreateAsync(Dto(42)));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.CreateAsync(Dto(42), Ct));
 
         Assert.Empty(_topics.Items);
         Assert.Equal(0, _topics.SaveChangesCalls);
@@ -95,11 +113,11 @@ public sealed class TopicServiceTests
         var topic = _topics.Seed(from.Id, "Old");
         var dto = Dto(to.Id);
 
-        var updated = await _sut.UpdateAsync(topic.Id, dto);
+        await _sut.UpdateAsync(topic.Id, dto, Ct);
 
-        Assert.Equal(dto.Name, updated.Name);
-        Assert.Equal(dto.Description, updated.Description);
-        Assert.Equal(to.Id, updated.ConferenceId);
+        Assert.Equal(dto.Name, topic.Name);
+        Assert.Equal(dto.Description, topic.Description);
+        Assert.Equal(to.Id, topic.ConferenceId);
         Assert.Equal(1, _topics.SaveChangesCalls);
     }
 
@@ -108,7 +126,7 @@ public sealed class TopicServiceTests
     {
         var conference = _conferences.Seed();
 
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(42, Dto(conference.Id)));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(42, Dto(conference.Id), Ct));
 
         Assert.Equal(0, _topics.SaveChangesCalls);
     }
@@ -119,7 +137,7 @@ public sealed class TopicServiceTests
         var conference = _conferences.Seed();
         var topic = _topics.Seed(conference.Id, "Original");
 
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(topic.Id, Dto(42)));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.UpdateAsync(topic.Id, Dto(42), Ct));
 
         Assert.Equal("Original", topic.Name);
         Assert.Equal(conference.Id, topic.ConferenceId);
@@ -131,7 +149,7 @@ public sealed class TopicServiceTests
     {
         var topic = _topics.Seed(conferenceId: 1);
 
-        await _sut.DeleteAsync(topic.Id);
+        await _sut.DeleteAsync(topic.Id, Ct);
 
         Assert.Empty(_topics.Items);
         Assert.Equal(1, _topics.SaveChangesCalls);
@@ -140,9 +158,8 @@ public sealed class TopicServiceTests
     [Fact]
     public async Task DeleteAsync_MissingTopic_Throws()
     {
-        await Assert.ThrowsAsync<NotFoundException>(() => _sut.DeleteAsync(42));
+        await Assert.ThrowsAsync<NotFoundException>(() => _sut.DeleteAsync(42, Ct));
 
         Assert.Equal(0, _topics.SaveChangesCalls);
     }
 }
-

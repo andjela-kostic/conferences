@@ -3,7 +3,6 @@ using Domain.Entities;
 
 namespace Application.UnitTests.Fakes;
 
-/// <summary>In-memory <see cref="IConferenceRepository"/> for service tests.</summary>
 public sealed class FakeConferenceRepository : IConferenceRepository
 {
     private int _nextId = 1;
@@ -22,8 +21,14 @@ public sealed class FakeConferenceRepository : IConferenceRepository
     public Task<List<Conference>> GetAllWithTopicsAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(Items.ToList());
 
+    public Task<Conference?> GetByIdWithTopicsAsync(int id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Items.FirstOrDefault(c => c.Id == id));
+
     public Task<Conference?> GetByIdAsync(int id, CancellationToken cancellationToken = default) =>
         Task.FromResult(Items.FirstOrDefault(c => c.Id == id));
+
+    public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default) =>
+        Task.FromResult(Items.Any(c => c.Id == id));
 
     public void Add(Conference conference)
     {

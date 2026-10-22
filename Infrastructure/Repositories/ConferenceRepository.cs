@@ -21,9 +21,21 @@ public class ConferenceRepository : IConferenceRepository
             .ToListAsync(cancellationToken);
     }
 
+    public Task<Conference?> GetByIdWithTopicsAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return _context.Conferences
+            .Include(c => c.Topics)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
     public Task<Conference?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         return _context.Conferences.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
+    public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return _context.Conferences.AnyAsync(c => c.Id == id, cancellationToken);
     }
 
     public void Add(Conference conference)

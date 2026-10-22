@@ -22,6 +22,41 @@ public sealed class TopicsEndpointsTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task GetById_ReturnsTopic_AndPostLocationPointsToIt()
+    {
+        var conference = await _client.CreateConferenceAsync(Ct);
+        var response = await _client.PostAsJsonAsync("/api/topics", new
+        {
+            Name = "Location",
+            Description = "x",
+            ConferenceId = conference.Id,
+        }, Ct);
+        var created = await response.Content.ReadFromJsonAsync<TopicResponse>(Ct);
+
+        var fetched = await _client.GetFromJsonAsync<TopicResponse>(response.Headers.Location, Ct);
+
+        Assert.Equal(created, fetched);
+    }
+
+    [Fact]
+    public async Task GetById_MissingTopic_Returns404ProblemDetails()
+    {
+        var response = await _client.GetAsync("/api/topics/999999", Ct);
+
+        await ProblemAssert.HasStatusAsync(response, HttpStatusCode.NotFound, Ct);
+    }
+
+    [Fact]
+    public async Task Post_MalformedBody_Returns400ProblemDetails()
+    {
+        using var content = new StringContent("{ \"conferenceId\": \"not-a-number\" }", System.Text.Encoding.UTF8, "application/json");
+
+        var response = await _client.PostAsync("/api/topics", content, Ct);
+
+        await ProblemAssert.HasStatusAsync(response, HttpStatusCode.BadRequest, Ct);
+    }
+
+    [Fact]
     public async Task Post_MissingConference_Returns404ProblemDetails()
     {
         var response = await _client.PostAsJsonAsync("/api/topics", new
@@ -83,5 +118,3 @@ public sealed class TopicsEndpointsTests(ApiFactory factory)
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
-
-

@@ -27,9 +27,6 @@ public sealed class FakeTopicRepository : ITopicRepository
     public Task<Topic?> GetByIdAsync(int id, CancellationToken cancellationToken = default) =>
         Task.FromResult(Items.FirstOrDefault(t => t.Id == id));
 
-    public Task<List<Topic>> GetByIdsAsync(IEnumerable<int> topicIds, CancellationToken cancellationToken = default) =>
-        Task.FromResult(Items.Where(t => topicIds.Contains(t.Id)).ToList());
-
     public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default) =>
         Task.FromResult(Items.Any(t => t.Id == id));
 
@@ -47,4 +44,5 @@ public sealed class FakeTopicRepository : ITopicRepository
         return Task.FromResult(0);
     }
 }
+
 

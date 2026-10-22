@@ -83,6 +83,57 @@ public sealed class UserServiceTests
     }
 
     [Fact]
+    public async Task RegisterUserAsync_NormalizesEmail()
+    {
+        var dto = new UserCreateDto { FirstName = "Ana", LastName = "Anić", Email = "  Ana.Anic@Example.COM " };
+
+        var user = await _sut.RegisterUserAsync(dto, Ct);
+
+        Assert.Equal("ana.anic@example.com", user.Email);
+        Assert.Equal("ana.anic@example.com", Assert.Single(_users.Items).Email);
+    }
+
+    [Fact]
+    public async Task RegisterUserAsync_EmailTakenInDifferentCase_ThrowsAndDoesNotSave()
+    {
+        _users.Seed("Ana").Email = "ana@example.com";
+        var dto = new UserCreateDto { FirstName = "Ana", LastName = "Druga", Email = "ANA@example.com" };
+
+        await Assert.ThrowsAsync<ConflictException>(() => _sut.RegisterUserAsync(dto, Ct));
+
+        Assert.Single(_users.Items);
+        Assert.Equal(0, _users.SaveChangesCalls);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_KeepingOwnEmail_Succeeds()
+    {
+        var user = _users.Seed("Ana");
+        user.Email = "ana@example.com";
+        var dto = new UserCreateDto { FirstName = "Ana", LastName = "Nova", Email = "Ana@Example.com" };
+
+        await _sut.UpdateAsync(user.Id, dto, Ct);
+
+        Assert.Equal("Nova", user.LastName);
+        Assert.Equal("ana@example.com", user.Email);
+        Assert.Equal(1, _users.SaveChangesCalls);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_EmailOfAnotherUser_ThrowsAndDoesNotChange()
+    {
+        _users.Seed("Ana").Email = "ana@example.com";
+        var marko = _users.Seed("Marko");
+        marko.Email = "marko@example.com";
+        var dto = new UserCreateDto { FirstName = "Marko", LastName = "Test", Email = "ana@example.com" };
+
+        await Assert.ThrowsAsync<ConflictException>(() => _sut.UpdateAsync(marko.Id, dto, Ct));
+
+        Assert.Equal("marko@example.com", marko.Email);
+        Assert.Equal(0, _users.SaveChangesCalls);
+    }
+
+    [Fact]
     public async Task DeleteAsync_ExistingUser_RemovesIt()
     {
         var user = _users.Seed();

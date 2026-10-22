@@ -12,7 +12,6 @@ internal static class ApiClientExtensions
             Name = "NDC " + Guid.NewGuid().ToString("N")[..8],
             Description = "Integration test conference",
             Date = new DateTime(2027, 6, 1, 9, 0, 0, DateTimeKind.Utc),
-            TopicIds = Array.Empty<int>(),
         }, ct);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

@@ -36,11 +36,14 @@ public class UserService : IUserService
 
     public async Task<UserResponse> RegisterUserAsync(UserCreateDto dto, CancellationToken cancellationToken = default)
     {
+        var email = NormalizeEmail(dto.Email);
+        await EnsureEmailIsFreeAsync(email, excludeUserId: null, cancellationToken);
+
         var user = new User
         {
             FirstName = dto.FirstName,
             LastName = dto.LastName,
-            Email = dto.Email
+            Email = email
         };
 
         _userRepository.Add(user);
@@ -52,9 +55,12 @@ public class UserService : IUserService
     {
         var user = await GetUserAsync(id, cancellationToken);
 
+        var email = NormalizeEmail(dto.Email);
+        await EnsureEmailIsFreeAsync(email, excludeUserId: id, cancellationToken);
+
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;
-        user.Email = dto.Email;
+        user.Email = email;
 
         await _userRepository.SaveChangesAsync(cancellationToken);
     }
@@ -114,4 +120,13 @@ public class UserService : IUserService
     private async Task<User> GetUserAsync(int id, CancellationToken cancellationToken) =>
         await _userRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new NotFoundException($"User with ID {id} not found.");
+
+    private async Task EnsureEmailIsFreeAsync(string email, int? excludeUserId, CancellationToken cancellationToken)
+    {
+        if (await _userRepository.EmailExistsAsync(email, excludeUserId, cancellationToken))
+            throw new ConflictException("A user with this e-mail address already exists.");
+    }
+
+    /// <summary>E-mail addresses are compared case-insensitively, so they are stored trimmed and in lowercase.</summary>
+    private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
 }

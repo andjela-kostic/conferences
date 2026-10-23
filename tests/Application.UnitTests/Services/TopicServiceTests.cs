@@ -9,13 +9,14 @@ public sealed class TopicServiceTests
 {
     private readonly FakeTopicRepository _topics = new();
     private readonly FakeConferenceRepository _conferences = new();
+    private readonly FakeLogger<TopicService> _logger = new();
     private readonly TopicService _sut;
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     public TopicServiceTests()
     {
-        _sut = new TopicService(_topics, _conferences);
+        _sut = new TopicService(_topics, _conferences, _logger);
     }
 
     private static TopicCreateDto Dto(int conferenceId) => new()

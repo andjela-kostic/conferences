@@ -145,6 +145,22 @@ The same lengths and uniqueness rules are enforced by the database (`varchar(n)`
 A topic belongs to exactly one conference: topics are created with `POST /api/topics` and moved to another conference
 by changing `conferenceId` with `PUT /api/topics/{id}`. The conference endpoints do not accept topic IDs.
 
+### Logging
+
+The application services log through `ILogger<T>` with compile-time [`[LoggerMessage]`](https://learn.microsoft.com/dotnet/core/extensions/logger-message-generator)
+methods (all defined in `Application/Logging/Log.cs`):
+
+| Level | When | Example |
+| --- | --- | --- |
+| `Information` | create / update / delete, registration changes, resource not found (`404`) | `Created topic {TopicId} in conference {ConferenceId}` |
+| `Warning` | conflicts (`409`): e-mail already used, already registered for the topic | `User {UserId} is already registered for topic {TopicId}` |
+| `Error` | unexpected exceptions — logged by the ASP.NET Core exception handler | |
+
+Messages are structured (`ConferenceId`, `TopicId`, `UserId`, …) and have stable event IDs
+(1xxx conferences, 2xxx topics, 3xxx users, 4xxx registrations).
+**No personal data** is logged: users appear only as `UserId`, never with their name or e-mail address.
+Levels are configured in `appsettings*.json` under `Logging:LogLevel` (e.g. `"Application": "Warning"` to keep only conflicts).
+
 ## 📚 API Endpoints
 
 Responses are JSON DTOs (`ConferenceResponse`, `TopicResponse`, `UserResponse`), never database entities.

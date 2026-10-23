@@ -9,13 +9,14 @@ public sealed class ConferenceServiceTests
 {
     private readonly FakeConferenceRepository _conferences = new();
     private readonly FakeTopicRepository _topics = new();
+    private readonly FakeLogger<ConferenceService> _logger = new();
     private readonly ConferenceService _sut;
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     public ConferenceServiceTests()
     {
-        _sut = new ConferenceService(_conferences);
+        _sut = new ConferenceService(_conferences, _logger);
     }
 
     private static ConferenceCreateDto Dto() => new()

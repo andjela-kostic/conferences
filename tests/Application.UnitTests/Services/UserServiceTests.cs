@@ -10,6 +10,7 @@ public sealed class UserServiceTests
     private readonly FakeUserRepository _users = new();
     private readonly FakeTopicRepository _topics = new();
     private readonly FakeUserTopicRepository _registrations;
+    private readonly FakeLogger<UserService> _logger = new();
     private readonly UserService _sut;
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
@@ -17,7 +18,7 @@ public sealed class UserServiceTests
     public UserServiceTests()
     {
         _registrations = new FakeUserTopicRepository(_users, _topics);
-        _sut = new UserService(_users, _topics, _registrations);
+        _sut = new UserService(_users, _topics, _registrations, _logger);
     }
 
     [Fact]

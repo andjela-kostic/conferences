@@ -14,6 +14,8 @@ A REST API for managing conferences and their topics, built with ASP.NET Core 10
 - ✅ Errors as [ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457) (`application/problem+json`)
 - ✅ Request validation (DataAnnotations) backed by database constraints (column lengths, unique e-mail and registration)
 - ✅ Health checks for liveness and readiness (database)
+- ✅ Structured logging in the application services (no personal data in logs)
+- ✅ Unit and integration tests (Testcontainers PostgreSQL), CI on every pull request
 - ✅ Modular architecture with DTOs, services, repositories, and controllers
 
 ## 🛠️ Tech Stack
@@ -222,7 +224,25 @@ Two GitHub Actions workflows:
 
 ### Manual requests
 
-Use the included `API/Conferences.http` file with REST Client extension or similar tools to test all endpoints.
+`API/Conferences.http` covers every endpoint, including error cases (`400`, `404`, `409`), and is written for the
+JetBrains HTTP Client (Rider / IntelliJ):
+
+- **Run it top to bottom** ("Run All Requests in File"). Response handlers store the IDs of created resources
+  (`{{conferenceId}}`, `{{topicId}}`, `{{userId}}`, …), so no IDs are hardcoded and the final section deletes what was created.
+- The **expected status code is part of each request name**, e.g. `Register for the same topic again → 409`.
+- E-mail addresses are random, so the file can be run repeatedly against the same database.
+- `@host` at the top selects the target: `http://localhost:5018` for `dotnet run`, `http://localhost:8080` for `docker compose up`.
+
+From the command line (no IDE) with the [HTTP Client CLI](https://www.jetbrains.com/help/idea/http-client-cli.html),
+after pointing `@host` at `http://host.docker.internal:<port>`:
+
+```bash
+docker run --rm -v "$PWD/API":/workdir jetbrains/intellij-http-client Conferences.http
+```
+
+The file uses JetBrains-specific features — response handlers (`> {% ... %}`) and `{{$random.uuid}}` — which VS Code
+REST Client and Visual Studio do not support; there, remove the handlers, set `conferenceId`, `topicId`, … as `@variables`
+at the top of the file and use fixed e-mail addresses.
 
 ## ☁️ Deployment (Azure Container Apps)
 
